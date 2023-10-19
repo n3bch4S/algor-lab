@@ -73,9 +73,13 @@ def minCostTrig(*pLst: Point, costBuffer: dict, subBuffer: dict) :
     pNum = len(pLst)
     if pNum > 3 :
         bestSub = bestSubPoly(*pLst, costBuffer=costBuffer, subBuffer=subBuffer)
+        if bestSub['poly'] == None :
+            return None
         bestPoint = bestSub['point']
         bestPoly = bestSub['poly'].vertices
         newTrig = joinPoint(bestPoint, *bestPoly)
+        if newTrig == None :
+            return None
         
         result = newTrig.perimeter + bestSub['length']
         costBuffer[polygon] = result
@@ -83,6 +87,7 @@ def minCostTrig(*pLst: Point, costBuffer: dict, subBuffer: dict) :
         return result
     elif pNum == 3 and isTrig(*pLst) :
         return allLength(*pLst, costBuffer)
+    #costBuffer[tuple(pLst)] = float('inf')
     return None
 
 def testResult(pLst: list) -> (int, dict, dict) :
@@ -110,13 +115,20 @@ def evalBuffer(buffer: dict) -> None :
         buffer[poly] = float(buffer[poly].evalf())
 
 
-CASE_FILE = ['1.1.txt', #0
-             '1.2.txt', #1
-             '0.0.txt'] #2
-SELECT_CASE = 1
+CASE_FILE = ['0.0.txt', #0
+             '1.1.txt', #1
+             '1.2.txt', #2
+             '2.1.txt', #3
+             '2.2.txt', #4
+             '3.txt',   #5
+             '4.txt',   #6
+             '5 Extra.txt', #7
+             '6 Extra.txt'] #8
+SELECT_CASE = 3
 pLst = fileToPoints(CASE_FILE[SELECT_CASE])
+print(str(pLst) + '\n')
 
 result, cost, sub = testResult(pLst)
 evalBuffer(cost)
 simplifyBuffer(sub)
-print(str(result) + ' = ' + str(result.evalf()))
+print('Result: ' + str(result) + ' = ' + str(result.evalf()))
