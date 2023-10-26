@@ -317,15 +317,42 @@ class Graph(GraphInterface):
         for comp in self.components:
             if comp.inDeg == 0:
                 noInList.append(comp)
-            elif comp.outDeg == 0:
+            if comp.outDeg == 0:
                 noOutList.append(comp)
+        maxLen = Graph.normalizeList(noOutList, noInList)
 
-        print("---Suggestion for complete component of graph---")
-        for i in range(len(noInList)):
+        print(f"---Suggestion for complete component of graph---")
+        print(f"only for {maxLen} edge(s)")
+        for i in range(maxLen):
+            j = (i + 1) % maxLen
             noOutComp = noOutList[i]
-            noInComp = noInList[i]
-            print(
-                f"{noOutComp.name} should lead to {noInComp.name}, for example {self.firstNodeByCompName(noOutComp.name)} -> {self.firstNodeByCompName(noInComp.name)}")
+            noInComp = noInList[j]
+            firstOutNode = self.firstNodeByCompName(noOutComp.name)
+            firstInNode = self.firstNodeByCompName(noInComp.name)
+            txt = f"{noOutComp.name} should lead to {noInComp.name}, "
+            txt += f"for example: {firstOutNode} -> {firstInNode}"
+            print(txt)
+        print("")
+        '''
+        while len(noOutList) > 0 and len(noInList) > 0:
+            noInComp = noInList.pop()
+            noOutComp = noOutList.pop()
+            firstOutNode = self.firstNodeByCompName(noOutComp.name)
+            firstInNode = self.firstNodeByCompName(noInComp.name)
+            txt = f"{noOutComp.name} should lead to {noInComp.name}, "
+            txt += f"for example: {firstOutNode} -> {firstInNode}"
+            print(txt)
+            if len(noOutList) == 0 and len(noInList) > 0:
+                for noInComp in noInList:
+                    txt = f"{noOutComp.name} should lead to {noInComp.name}, "
+                    txt += f"for example: {firstOutNode} -> {firstInNode}"
+                    print(txt)
+            elif len(noOutList) > 0 and len(noInList) == 0:
+                for noOutComp in noOutList:
+                    txt = f"{noOutComp.name} should lead to {noInComp.name}, "
+                    txt += f"for example: {firstOutNode} -> {firstInNode}"
+                    print(txt)
+                    '''
 
     def firstNodeByCompName(self, compName: str) -> str:
         assertString(compName)
@@ -336,6 +363,20 @@ class Graph(GraphInterface):
                 return node.name
 
         return ""
+
+    @staticmethod
+    def normalizeList(listA: list, listB: list) -> int:
+        assertList(listA)
+        assertList(listB)
+
+        lenA = len(listA)
+        lenB = len(listB)
+        maxLen = max(lenA, lenB)
+        while len(listA) < maxLen:
+            listA.append(listA[0])
+        while len(listB) < maxLen:
+            listB.append(listB[0])
+        return maxLen
 
     def FWAllPair(self):
         pass
@@ -491,13 +532,43 @@ def assertList(x: Any) -> None:
         raise TypeError("This parameter is not list")
 
 
-a = Graph("a")
-a.addEdge(Node(1), Node(2), 3.0, False)
-a.addEdge(Node(2), Node(3), 4.0, False)
-a.addEdge(Node(3), Node(4), 5.0, False)
-a.addEdge(Node(4), Node(5), 6.0, False)
-a.addEdge(Node(5), Node(3), 8.0, False)
+def fileNameToGraphList(filename: str) -> list:
+    assertString(filename)
+
+    graphList = []
+    file = open(filename, 'r')
+    header = file.readline().split(" ")
+    graphCount = 1
+
+    while header != ['0', '0']:
+        nodeNum = int(header[0])
+        edgeNum = int(header[1])
+        graph = Graph(str(graphCount))
+        for i in range(edgeNum):
+            line = file.readline().split(" ")
+            u = Node(int(line[0]))
+            v = Node(int(line[1]))
+            twoSide = line[2].strip() == "2"
+            graph.addEdge(u, v, 1.0, twoSide)
+        graphList.append(graph)
+        header = file.readline().split(" ")
+        graphCount += 1
+
+    file.close()
+    return graphList
 
 
-print(a)
-a.suggestCompleteComponent()
+FILE_DIR = ["ex.txt",  # 0
+            "6.1.txt",  # 1
+            "6.2.txt",  # 2
+            "6.3.txt",  # 3
+            "6.4.txt",  # 4
+            "Extra6.5.txt",  # 5
+            "EXtra6.6.txt"]  # 6
+FILE_SELECTOR = 6
+
+graphList = fileNameToGraphList(FILE_DIR[FILE_SELECTOR])
+
+for graph in graphList:
+    print(graph)
+    graph.suggestCompleteComponent()
