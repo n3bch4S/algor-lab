@@ -186,18 +186,32 @@ FILE_DIR = ["ex.txt", #0
             "6.3.txt", #3
             "6.4.txt", #4
             "Extra6.5.txt", #5
-            "EXtra6.6.txt", #6
-            "Extra6.7.txt", #7
-            "lab 6 input Demo.txt", #8
-            "test.txt"] #9
-FILE_SELECTOR = 4
+            "EXtra6.6.txt"] #6
+FILE_SELECTOR = 6
 
 graphs = fileToGraphs(FILE_DIR[FILE_SELECTOR])
+
+''' 
 sccs = []
+print("can it?")
 for graph in graphs :
     treeL = graph.SCC()
     sccs.append(treeL)
-    print(1 if len(treeL) == 1 else 0)
+    print("   " + ('1' if len(treeL) == 1 else '0') )
+''' 
+
+''' '''
+sccs = []
+print("can it?, component")
+for graph in graphs :
+    treeL = graph.SCC()
+    sccs.append(treeL)
+    print("   " + ('1' if len(treeL) == 1 else '0') + "    ,   " + str(len(treeL)))
+    comG = SGraph()
+    for tree in treeL :
+        comG.addE(a, b, c)tree[0].name
+        for 
+''' '''
 
 ''' test vertex 
 v = Vertex('v')
