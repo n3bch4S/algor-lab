@@ -281,10 +281,13 @@ class Graph(GraphInterface):
                 v.leadTo(u)
                 self.wMatrix[j][i] = distance
                 self.edgeNum += 1
+            self.buildComponent()
             return True
         return False
 
-    def buildComponent(self) -> bool:
+    def buildComponent(self) -> None:
+        self.components = []
+        self.compNum = 0
         for node in self.nodes:
             allHomie = node.allHomie
             homieNode = Node(int(node.homieName))
@@ -306,6 +309,33 @@ class Graph(GraphInterface):
                             i = self.components.index(outerHomieNode)
                             outerHomieNode = self.components[i]
                         homieNode.leadTo(outerHomieNode)
+
+    def suggestCompleteComponent(self):
+        self.buildComponent()
+        noOutList = []
+        noInList = []
+        for comp in self.components:
+            if comp.inDeg == 0:
+                noInList.append(comp)
+            elif comp.outDeg == 0:
+                noOutList.append(comp)
+
+        print("---Suggestion for complete component of graph---")
+        for i in range(len(noInList)):
+            noOutComp = noOutList[i]
+            noInComp = noInList[i]
+            print(
+                f"{noOutComp.name} should lead to {noInComp.name}, for example {self.firstNodeByCompName(noOutComp.name)} -> {self.firstNodeByCompName(noInComp.name)}")
+
+    def firstNodeByCompName(self, compName: str) -> str:
+        assertString(compName)
+
+        for node in self.nodes:
+            nodeCompName = node.homieName
+            if nodeCompName == compName:
+                return node.name
+
+        return ""
 
     def FWAllPair(self):
         pass
@@ -329,7 +359,7 @@ class Graph(GraphInterface):
 
         txt += "---Property of graph---\n"
         txt += (
-            f"nodeNum: {self.nodeNum}, edgeNum: {self.edgeNum}, compNum: {self.compNum}"
+            f"nodeNum: {self.nodeNum}, edgeNum: {self.edgeNum}, compNum: {self.compNum}\n"
         )
         return txt
 
@@ -468,5 +498,6 @@ a.addEdge(Node(3), Node(4), 5.0, False)
 a.addEdge(Node(4), Node(5), 6.0, False)
 a.addEdge(Node(5), Node(3), 8.0, False)
 
-a.buildComponent()
+
 print(a)
+a.suggestCompleteComponent()

@@ -13,8 +13,8 @@ class NodeInterface(ABC):
         self.canTo = []
         self.canFrom = []
 
-        self.allHomie = []
-        self.homieName = ""
+        self.allHomie = [self]
+        self.homieName = str(num)
 
         """ Temp instance """
         self.color = ""
