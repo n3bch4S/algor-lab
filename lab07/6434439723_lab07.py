@@ -9,6 +9,8 @@ in asymtotic notation, |C| mean number of connected node
 """
 from typing import Any, Type
 from Interface import NodeInterface, GraphInterface
+from Matrix import Matrix
+from Cube import Cube
 
 
 class Node(NodeInterface):
@@ -378,8 +380,60 @@ class Graph(GraphInterface):
             listB.append(listB[0])
         return maxLen
 
-    def FWAllPair(self):
-        pass
+    @staticmethod
+    def FWAllPair(wMatrix: list[list[float]]) -> tuple[Cube]:
+        Graph.assertSqrMtx(wMatrix)
+
+        nRow = len(wMatrix)
+        d = Cube(nRow, nRow, nRow + 1)
+        pi = Cube(nRow, nRow, nRow + 1)
+        for i in range(nRow):
+            for j in range(nRow):
+                d.cube[0].matrix[i][j] = wMatrix[i][j]
+                if i == j or wMatrix[i][j] == float('inf'):
+                    pi.cube[0].matrix[i][j] = None
+                else:
+                    pi.cube[0].matrix[i][j] = i + 1
+
+        for k in range(1, nRow + 1):
+            for i in range(nRow):
+                for j in range(nRow):
+                    oldPath = d.cube[k - 1].matrix[i][j]
+                    newPath = max(d.cube[k - 1]
+                                  .matrix[i][k - 1], d.cube[k - 1].matrix[k - 1][j])
+                    if oldPath <= newPath:
+                        pi.cube[k].matrix[i][j] = pi.cube[k - 1].matrix[i][j]
+                    else:
+                        pi.cube[k].matrix[i][j] = pi.cube[k -
+                                                          1].matrix[k - 1][j]
+                    d.cube[k].matrix[i][j] = min(oldPath, newPath)
+
+        return d, pi
+
+    @staticmethod
+    def assertSqrMtx(wMatrix):
+        assertList(wMatrix)
+        if len(wMatrix) <= 0:
+            raise ValueError("This Matrix has 0 row")
+        nRow = len(wMatrix)
+        row = wMatrix[0]
+        assertList(row)
+        if len(row) <= 0:
+            raise ValueError("This Matrix has 0 coloumn")
+        if len(wMatrix) != len(row):
+            raise ValueError("This Matrix is not square")
+        ele = row[0]
+        assertFloat(ele)
+
+    @staticmethod
+    def toPath(pi: Cube, u: int, v: int) -> str:
+        if u == v:
+            return str(u)
+        piValue = pi.cube[-1].matrix[u - 1][v - 1]
+        if piValue == None:
+            return f"no path from {u} to {v}"
+
+        return f"{Graph.toPath(pi, u, int(piValue))}->{v}"
 
     def __invert__(self) -> None:
         pass
@@ -535,40 +589,46 @@ def assertList(x: Any) -> None:
 def fileNameToGraphList(filename: str) -> list:
     assertString(filename)
 
-    graphList = []
     file = open(filename, 'r')
     header = file.readline().split(" ")
-    graphCount = 1
+    nodeNum = int(header[0])
+    edgeNum = int(header[1])
+    graph = Graph("Test Graph")
+    for i in range(edgeNum):
+        line = file.readline().split(" ")
+        u = Node(int(line[0]))
+        v = Node(int(line[1]))
+        weigth = float(line[2])
+        graph.addEdge(u, v, weigth, True)
 
-    while header != ['0', '0']:
-        nodeNum = int(header[0])
-        edgeNum = int(header[1])
-        graph = Graph(str(graphCount))
-        for i in range(edgeNum):
-            line = file.readline().split(" ")
-            u = Node(int(line[0]))
-            v = Node(int(line[1]))
-            twoSide = line[2].strip() == "2"
-            graph.addEdge(u, v, 1.0, twoSide)
-        graphList.append(graph)
-        header = file.readline().split(" ")
-        graphCount += 1
+    qList = []
+    for line in file:
+        line = line.split()
+        u = int(line[0])
+        v = int(line[1])
+        qList.append([u, v])
 
     file.close()
-    return graphList
+    return graph, qList
 
 
 FILE_DIR = ["ex.txt",  # 0
-            "6.1.txt",  # 1
-            "6.2.txt",  # 2
-            "6.3.txt",  # 3
-            "6.4.txt",  # 4
-            "Extra6.5.txt",  # 5
-            "EXtra6.6.txt"]  # 6
+            "7.1.txt",  # 1
+            "7.2.txt",  # 2
+            "7.3.txt",  # 3
+            "7.4.txt",  # 4
+            "7_extra1.txt",  # 5
+            "7_extra2.txt"]  # 6
 FILE_SELECTOR = 6
 
-graphList = fileNameToGraphList(FILE_DIR[FILE_SELECTOR])
+graph, qList = fileNameToGraphList(FILE_DIR[FILE_SELECTOR])
 
-for graph in graphList:
-    print(graph)
-    graph.suggestCompleteComponent()
+d, pi = Graph.FWAllPair(graph.wMatrix)
+
+print(d, pi)
+for q in qList:
+    print(f"the question is {q}")
+    u = q[0]
+    v = q[1]
+    print(d.cube[-1].matrix[u - 1][v - 1])
+    print(Graph.toPath(pi, u, v))
