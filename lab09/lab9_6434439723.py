@@ -50,6 +50,34 @@ def kmp(t: list[str], p: list[str], reversed: bool) -> list[int]:
     return occurs
 
 
+def naiveSearch(text: list[str], pattern: list[str], reversed: bool) -> list[int]:
+    print(f"naiveSearch has been called")
+    occurs = []
+    m = len(pattern)
+    n = len(text)
+    print(f"searching")
+    for patternStartAt in range(n - m + 1):
+        charAt = 0
+        print(f"patternStartAt: {patternStartAt}, charAt: {charAt}")
+        while charAt < m and pattern[charAt] == text[patternStartAt + charAt]:
+            print(
+                f"charAt{charAt} < {m} and {pattern[charAt]} == {text[patternStartAt + charAt]}"
+            )
+            charAt += 1
+        if charAt == m:
+            if reversed:
+                foundAt = n - patternStartAt
+            else:
+                foundAt = patternStartAt + 1
+            print(f"Pattern occur with shift {foundAt}")
+            occurs.append(foundAt)
+    print("returning occurs")
+    return occurs
+
+
+# [0,1,2,3,4,5]
+
+
 def toListTable(stringList: list[str]) -> str:
     size = len(stringList)
     idx = [str(x + 1) for x in range(size)]
@@ -119,12 +147,16 @@ print(f"text: {text}")
 
 occursLR = kmp(text, pattern, reversed=False)
 print(f"occursLR: {occursLR}")
+naiveOccursLR = naiveSearch(text, pattern, reversed=False)
+print(f"naive-occursLR: {naiveOccursLR}")
 
 textReversed = text[::-1]
 print(f"text-reversed: {textReversed}")
 
 occursRL = kmp(textReversed, pattern, reversed=True)
 print(f"occursRL: {occursRL}")
+naiveOccursRL = naiveSearch(textReversed, pattern, reversed=True)
+print(f"naive-occursRL: {naiveOccursRL}")
 
 print("#################################")
 print(f"sigma: {sigma}, m: {m}, n: {n}")
@@ -132,3 +164,5 @@ print(f"pattern: {pattern}")
 print(f"{toListTable(text)}")
 print(f"occursLR: {occursLR}")
 print(f"occursRL: {occursRL}")
+print(f"naive-occursLR: {naiveOccursLR}")
+print(f"naive-occursRL: {naiveOccursRL}")
