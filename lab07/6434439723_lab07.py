@@ -599,7 +599,7 @@ def fileNameToGraphList(filename: str) -> list:
         u = Node(int(line[0]))
         v = Node(int(line[1]))
         weigth = float(line[2])
-        graph.addEdge(u, v, weigth, True)
+        graph.addEdge(u, v, weigth, False)
 
     qList = []
     for line in file:
