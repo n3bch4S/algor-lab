@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import time
+
 
 def getPrefixFunction(p: list[str]) -> list[int]:
     print(f"getPrefixFunction has been called")
@@ -21,6 +23,8 @@ def getPrefixFunction(p: list[str]) -> list[int]:
 
 # [0,1,2,3,4,5,6,7,8,9] n-(i-m+1)+1 = n-i+m - 2
 
+""" """
+
 
 def kmp(t: list[str], p: list[str], reversed: bool) -> list[int]:
     print(f"kmp has been called")
@@ -30,6 +34,8 @@ def kmp(t: list[str], p: list[str], reversed: bool) -> list[int]:
     pi = getPrefixFunction(p)
     q = 0
     occurs = []
+    t = t + t[: m - 1]
+    n = len(t)
     print(f"searching")
     for i in range(n):
         print(f"q: {q}, i: {i}")
@@ -41,38 +47,76 @@ def kmp(t: list[str], p: list[str], reversed: bool) -> list[int]:
             q += 1
         if q == m:
             if reversed:
-                foundAt = n + m - i - 1
+                foundAt = n - i
             else:
                 foundAt = i - m + 2
             print(f"Pattern occur with shift {foundAt}")
             occurs.append(foundAt)
             q = pi[q - 1]
     return occurs
+    """ """
 
 
-def naiveSearch(text: list[str], pattern: list[str], reversed: bool) -> list[int]:
+"""
+def kmp(t: str, p: str, reversed: bool) -> list[int]:
+    print(f"kmp_circular has been called")
+    n = len(t)
+    m = len(p)
+    print(f"calling getPrefixFunction")
+    pi = getPrefixFunction(p)
+    q = 0
+    occurs = []
+    print(f"searching")
+    for i in range(n + m - 1):  # Increase range to allow circular matching
+        print(f"q: {q}, i: {i % n}")
+        while q > 0 and p[q] != t[i % n]:
+            print(f"p[q] != t[i]")
+            q = pi[q - 1]
+        if p[q] == t[i % n]:
+            print(f"p[q] == t[i]")
+            q += 1
+        if q == m:
+            if reversed:
+                found_at = (i - m + 1) % n
+            else:
+                found_at = i - m + 1
+            print(f"Pattern occurs with shift {found_at}")
+            occurs.append(found_at)
+            q = pi[q - 1]
+    return occurs
+"""
+
+
+def naiveSearch(
+    text: list[str], pattern: list[str], reversed: bool
+) -> tuple[list[int], dict[int, list[int]]]:
     print(f"naiveSearch has been called")
     occurs = []
     m = len(pattern)
     n = len(text)
+    limitLength = {}
     print(f"searching")
-    for patternStartAt in range(n - m + 1):
+    for patternStartAt in range(n):
         charAt = 0
         print(f"patternStartAt: {patternStartAt}, charAt: {charAt}")
-        while charAt < m and pattern[charAt] == text[patternStartAt + charAt]:
+        while charAt < m and pattern[charAt] == text[(patternStartAt + charAt) % n]:
             print(
-                f"charAt{charAt} < {m} and {pattern[charAt]} == {text[patternStartAt + charAt]}"
+                f"charAt{charAt} < {m} and {pattern[charAt]} == {text[(patternStartAt + charAt) % n]}"
             )
             charAt += 1
+        if reversed:
+            foundAt = n - patternStartAt
+        else:
+            foundAt = patternStartAt + 1
         if charAt == m:
-            if reversed:
-                foundAt = n - patternStartAt
-            else:
-                foundAt = patternStartAt + 1
             print(f"Pattern occur with shift {foundAt}")
             occurs.append(foundAt)
+
+        if charAt not in limitLength:
+            limitLength[charAt] = []
+        limitLength[charAt].append(foundAt)
     print("returning occurs")
-    return occurs
+    return occurs, limitLength
 
 
 # [0,1,2,3,4,5]
@@ -137,25 +181,56 @@ FILE_DIRECTORY = [
     "9.1.txt",  # 1
     "9.2.txt",  # 2
     "9.3.txt",  # 3
-    "9.4.txt",  # 4
+    "9.4.txt",  # 4 circular
+    "9.5.txt",  # 5
+    "9.6.txt",  # 6
+    "9.7.txt",  # 7 circular
+    "9.8.txt",  # 8
 ]
-FILE_SELECTOR = 0
+FILE_SELECTOR = 8
 sigma, m, n, pattern, text = initData(FILE_DIRECTORY[FILE_SELECTOR])
 print(f"sigma: {sigma}, m: {m}, n: {n}")
 print(f"pattern: {pattern}")
 print(f"text: {text}")
 
-occursLR = kmp(text, pattern, reversed=False)
+text = text * 3
+
+timeTable = {}
+st_KMP = time.time_ns()
+occursLR = kmp(text, pattern, reversed=False)  # <--
+et_KMP = time.time_ns()
+runtime_KMP = str("{:,}".format(et_KMP - st_KMP))
+timeTable["KMP-normal"] = runtime_KMP
 print(f"occursLR: {occursLR}")
-naiveOccursLR = naiveSearch(text, pattern, reversed=False)
+
+
+st_KMP = time.time_ns()
+naiveOccursLR, limitOccursLR = naiveSearch(text, pattern, reversed=False)  # <--
+et_KMP = time.time_ns()
+runtime_KMP = str("{:,}".format(et_KMP - st_KMP))
+timeTable["naive-normal"] = runtime_KMP
+
 print(f"naive-occursLR: {naiveOccursLR}")
 
 textReversed = text[::-1]
 print(f"text-reversed: {textReversed}")
 
-occursRL = kmp(textReversed, pattern, reversed=True)
+
+st_KMP = time.time_ns()
+occursRL = kmp(textReversed, pattern, reversed=True)  # <--
+et_KMP = time.time_ns()
+runtime_KMP = str("{:,}".format(et_KMP - st_KMP))
+timeTable["KMP-reversed"] = runtime_KMP
+
 print(f"occursRL: {occursRL}")
-naiveOccursRL = naiveSearch(textReversed, pattern, reversed=True)
+
+
+st_KMP = time.time_ns()
+naiveOccursRL, limitOccursRL = naiveSearch(textReversed, pattern, reversed=True)  # <--
+et_KMP = time.time_ns()
+runtime_KMP = str("{:,}".format(et_KMP - st_KMP))
+timeTable["naive-reversed"] = runtime_KMP
+
 print(f"naive-occursRL: {naiveOccursRL}")
 
 print("#################################")
@@ -166,3 +241,7 @@ print(f"occursLR: {occursLR}")
 print(f"occursRL: {occursRL}")
 print(f"naive-occursLR: {naiveOccursLR}")
 print(f"naive-occursRL: {naiveOccursRL}")
+# print(f"limit-occurs-LR: {limitOccursLR}")
+# print(f"limit-occurs-RL: {limitOccursRL}")
+print(timeTable)
+print(f"pi: {getPrefixFunction(pattern)}")
